@@ -8,8 +8,14 @@ export function closeModal(popup) {
   document.removeEventListener('keydown', escClose);
 };
 
-export function escClose(evt) {
+function escClose(evt) {
   if (evt.key === 'Escape') {
     closeModal(document.querySelector('.popup_is-opened'));
+  };
+};
+
+export function closePopupByOverlay(evt) {
+  if (evt.target.classList.contains('popup')) {
+    closeModal(evt.currentTarget);
   };
 };

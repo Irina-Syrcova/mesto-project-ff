@@ -1,7 +1,6 @@
-import { openModal } from './modal';
-import { imagePopup, cardTemplate } from './index.js';
+import { cardTemplate } from './index.js';
 
-export function createCard(cardData, deleteCallback) {
+export function createCard(cardData, deleteCallback, like, openImage) {
   const cardElement = cardTemplate.cloneNode(true);
   const deleteButton = cardElement.querySelector('.card__delete-button');
   const likeButton = cardElement.querySelector('.card__like-button');
@@ -10,15 +9,9 @@ export function createCard(cardData, deleteCallback) {
   cardElement.querySelector('.card__image').alt = cardData.name;
   cardElement.querySelector('.card__title').textContent = cardData.name;
 
-  cardElement.querySelector('.card__image').addEventListener('click', function () {
-    openModal(imagePopup);
-    imagePopup.querySelector('.popup__image').src = cardData.link;
-    imagePopup.querySelector('.popup__caption').textContent = cardData.name;
-  });
+  cardElement.querySelector('.card__image').addEventListener('click', openImage);
 
-  likeButton.addEventListener('click', function () {
-    likeButton.classList.toggle('card__like-button_is-active');
-  });
+  likeButton.addEventListener('click', like);
 
   deleteButton.addEventListener('click', deleteCallback);
   return cardElement;
@@ -27,4 +20,9 @@ export function createCard(cardData, deleteCallback) {
 export function deleteCard(event) {
   const listItem = event.target.closest('.places__item');
   listItem.remove();
+}
+
+export function likeCard(event) {
+  const likeButton = event.target.closest('.card__like-button');
+  likeButton.classList.toggle('card__like-button_is-active');
 }
