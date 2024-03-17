@@ -25,3 +25,18 @@
     line-height: 17px;
   }
 }
+
+.form__submit_inactive {
+  background: #fff;
+  color: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.popup__button:disabled:hover {
+  background: inherit;
+  cursor: default;
+}
+
+.popup__button_delete {
+  margin-block-start: 38px;
+}
