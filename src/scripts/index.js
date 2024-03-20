@@ -11,27 +11,28 @@ const addButton = document.querySelector('.profile__add-button');
 const newCardPopup = document.querySelector('.popup_type_new-card');
 const imagePopup = document.querySelector('.popup_type_image');
 const formEdit = editPopup.querySelector('.popup__form');
-export const nameInput = document.querySelector('.popup__input_type_name');
-export const jobInput = document.querySelector('.popup__input_type_description');
-export const profileTitle = document.querySelector('.profile__title');
-export const profileDesc = document.querySelector('.profile__description');
-export const inputCardName = document.querySelector('.popup__input_type_card-name');
-export const inputUrl = document.querySelector('.popup__input_type_url');
+const nameInput = document.querySelector('.popup__input_type_name');
+const jobInput = document.querySelector('.popup__input_type_description');
+const profileTitle = document.querySelector('.profile__title');
+const profileDesc = document.querySelector('.profile__description');
+const inputCardName = document.querySelector('.popup__input_type_card-name');
+const inputUrl = document.querySelector('.popup__input_type_url');
 const cardForm = newCardPopup.querySelector('.popup__form');
 const deletePopup = document.querySelector('.popup_type_delete');
-export const deleteSubmitButton = deletePopup.querySelector('.popup__button');
+const deleteSubmitButton = deletePopup.querySelector('.popup__button');
 const updateAvatarButton = document.querySelector('.profile__image-update');
 const avatarPopup = document.querySelector('.popup_type_update-avatar');
 const avatarForm = avatarPopup.querySelector('.popup__form');
-export const avatarInput = document.querySelector('.popup__input_type_update-avatar');
-export const profileAvatar = document.querySelector('.profile__image');
+const avatarInput = document.querySelector('.popup__input_type_update-avatar');
+const profileAvatar = document.querySelector('.profile__image');
 const popupImage = document.querySelector('.popup__image');
 const popupCaption = document.querySelector('.popup__caption');
 const popups = document.querySelectorAll('.popup');
-export let userId;
+let userId;
+let cardId;
 
 
-export function openImage(event) {
+function openImage(event) {
   openModal(imagePopup);
   popupImage.src = event.target.closest('.card__image').src;
   popupImage.alt = event.target.closest('.card__image').alt;
@@ -70,13 +71,13 @@ function editFormSubmit(evt) {
     .then(() => {
       profileTitle.textContent = nameInput.value;
       profileDesc.textContent = jobInput.value;
+      closeModal(editPopup);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
       evt.submitter.textContent = "Сохранить";
-      closeModal(editPopup);
     })
 };
 
@@ -84,17 +85,18 @@ function handleCardSubmit(evt) {
   evt.preventDefault();
   evt.submitter.textContent = 'Сохранение...';
   addNewCard(inputCardName.value, inputUrl.value)
-    .then(() => {
-      placesList.append(createCard({ name: inputCardName.value, link: inputUrl.value, likes: Array(0), owner: { _id: 'b20be6075b615bb25e391ccf' }, _id: '' }, openSubmit, likeCard, openImage));
+    .then((res) => {
+      cardId = res._id
+      placesList.prepend(createCard({ name: inputCardName.value, link: inputUrl.value, likes: Array(0), _id: cardId, owner: { _id: userId } }, openSubmit, likeCard, openImage, userId, cardId));
+      cardForm.reset();
+      closeModal(newCardPopup);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
       evt.submitter.textContent = "Сохранить";
-      cardForm.reset();
       clearValidation(settingsValidation, cardForm);
-      closeModal(newCardPopup);
     })
 };
 
@@ -104,14 +106,14 @@ function newAvatar(evt) {
   updateAvatar(avatarInput.value)
     .then(() => {
       profileAvatar.style.backgroundImage = `url(${avatarInput.value})`;
+      avatarForm.reset();
+      closeModal(avatarPopup);
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
       evt.submitter.textContent = "Сохранить";
-      avatarForm.reset();
-      closeModal(avatarPopup);
     })
 };
 
@@ -121,49 +123,34 @@ avatarPopup.addEventListener('submit', newAvatar);
 
 enableValidation(settingsValidation);
 
-export function openSubmit(evt) {
+function openSubmit(evt) {
   evt.preventDefault();
   const deleteButton = evt.target.closest('.card__delete-button');
   openModal(deletePopup);
   deletePopup._id = deleteButton._id;
-  const deleteSubmitButton = deletePopup.querySelector('.popup__button');
-  deleteSubmitButton.addEventListener('click', function () {
+  deleteSubmitButton.addEventListener('click', function() {
     if (deletePopup._id === deleteButton._id) {
       deleteMyCard(deleteButton._id)
         .then(() => {
           deleteCard(evt);
+          closeModal(deletePopup);
         })
         .catch((err) => {
           console.log(err);
-        })
-        .finally(() => {
-          closeModal(deletePopup);
         })
     }
   });
 };
 
-Promise.all([getUserInfo, getCard])
-  .then(([getUserInfo, getCard]) => {
-    getUserInfo()
-      .then((res) => {
-        profileTitle.textContent = res.name;
-        profileDesc.textContent = res.about;
-        profileAvatar.style.backgroundImage = `url(${res.avatar})`;
-        userId = res._id;
-      })
-      .catch((err) => {
-        console.log(err);
-      })
-    getCard()
-      .then((res) => {
-        res.forEach(function (element) {
-          placesList.append(createCard(element, openSubmit, likeCard, openImage));
-        })
-      })
-      .catch((err) => {
-        console.log(err);
-      })
+Promise.all([getUserInfo(), getCard()])
+  .then(([userData, cards]) => {
+    profileTitle.textContent = userData.name;
+    profileDesc.textContent = userData.about;
+    profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
+    userId = userData._id;
+    cards.forEach(function (element) {
+      placesList.append(createCard(element, openSubmit, likeCard, openImage, userId, cardId));
+    })
   })
   .catch(error => {
     console.error(error)

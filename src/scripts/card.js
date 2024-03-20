@@ -1,9 +1,8 @@
 import { putLikeCard, dislikeCard } from './api.js';
-import { userId } from './index.js';
 
 const cardTemplate = document.querySelector('#card-template').content;
 
-export function createCard(cardData, openSubmit, like, openImage) {
+export function createCard(cardData, openSubmit, like, openImage, userId, cardId) {
   const cardElement = cardTemplate.cloneNode(true);
   const deleteButton = cardElement.querySelector('.card__delete-button');
   const likeButton = cardElement.querySelector('.card__like-button');
@@ -16,6 +15,7 @@ export function createCard(cardData, openSubmit, like, openImage) {
   deleteButton._id = cardData._id;
   likeButton._id = cardData._id;
   numbersOfLikes._id = cardData._id;
+  cardId = cardData._id;
 
   cardElement.querySelector('.card__image').addEventListener('click', openImage);
   likeButton.addEventListener('click', like);
@@ -45,39 +45,25 @@ export function deleteCard(event) {
 
 export function likeCard(event) {
   const likeButton = event.target.closest('.card__like-button');
+  const numberOfLikes = event.target.closest('.card').querySelector('.card__likes');
   if (!likeButton.classList.contains('card__like-button_is-active')) {
     putLikeCard(likeButton._id)
-    .then((res) => {
-      const numbersOfLikes = document.querySelectorAll('.card__likes');
-      numbersOfLikes.forEach((element) => {
-        if (element._id === res._id) {
-          element.textContent = res.likes.length
-        }
+      .then((res) => {
+        numberOfLikes.textContent = res.likes.length;
+        likeButton.classList.add('card__like-button_is-active');
       })
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      likeButton.classList.add('card__like-button_is-active');
-    })
-  } 
+      .catch((err) => {
+        console.log(err);
+      })
+  }
   if (likeButton.classList.contains('card__like-button_is-active')) {
     dislikeCard(likeButton._id)
-    .then((res) => {
-      likeButton.classList.toggle('card__like-button_is-active');
-      const numbersOfLikes = document.querySelectorAll('.card__likes');
-      numbersOfLikes.forEach((element) => {
-        if (element._id === res._id) {
-          element.textContent = res.likes.length
-        }
+      .then((res) => {
+        numberOfLikes.textContent = res.likes.length;
+        likeButton.classList.remove('card__like-button_is-active');
       })
-    })
-    .catch((err) => {
-      console.log(err);
-    })
-    .finally(() => {
-      likeButton.classList.remove('card__like-button_is-active');
-    })
+      .catch((err) => {
+        console.log(err);
+      })
   }
 };
