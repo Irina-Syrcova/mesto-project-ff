@@ -1,10 +1,11 @@
 import '../pages/index.css';
-import { createCard, deleteCard, likeCard } from './card.js';
+import { createCard, likeCard } from './card.js';
 import { openModal, closeModal } from './modal.js';
 import { enableValidation, clearValidation, settingsValidation } from './validation.js';
 import { getUserInfo, getCard, setUserNewData, addNewCard, deleteMyCard, updateAvatar } from './api.js';
 
 export const placesList = document.querySelector('.places__list');
+const placesItem = document.querySelector('.places__item');
 const editButton = document.querySelector('.profile__edit-button');
 const editPopup = document.querySelector('.popup_type_edit');
 const addButton = document.querySelector('.profile__add-button');
@@ -19,7 +20,6 @@ const inputCardName = document.querySelector('.popup__input_type_card-name');
 const inputUrl = document.querySelector('.popup__input_type_url');
 const cardForm = newCardPopup.querySelector('.popup__form');
 const deletePopup = document.querySelector('.popup_type_delete');
-const deleteSubmitButton = deletePopup.querySelector('.popup__button');
 const updateAvatarButton = document.querySelector('.profile__image-update');
 const avatarPopup = document.querySelector('.popup_type_update-avatar');
 const avatarForm = avatarPopup.querySelector('.popup__form');
@@ -30,6 +30,7 @@ const popupCaption = document.querySelector('.popup__caption');
 const popups = document.querySelectorAll('.popup');
 let userId;
 let cardId;
+let currentCard;
 
 
 function openImage(event) {
@@ -37,6 +38,13 @@ function openImage(event) {
   popupImage.src = event.target.closest('.card__image').src;
   popupImage.alt = event.target.closest('.card__image').alt;
   popupCaption.textContent = event.target.closest('.card').querySelector('.card__title').textContent;
+}
+
+function openSubmit(evt) {
+  const deleteButton = evt.target.closest('.card__delete-button');
+  openModal(deletePopup);
+  cardId = deleteButton._id;
+  currentCard = evt.target.closest('.card')
 }
 
 editButton.addEventListener('click', function () {
@@ -80,7 +88,6 @@ function editFormSubmit(evt) {
       evt.submitter.textContent = "Сохранить";
     })
 };
-
 function handleCardSubmit(evt) {
   evt.preventDefault();
   evt.submitter.textContent = 'Сохранение...';
@@ -99,7 +106,6 @@ function handleCardSubmit(evt) {
       clearValidation(settingsValidation, cardForm);
     })
 };
-
 function newAvatar(evt) {
   evt.preventDefault();
   evt.submitter.textContent = 'Сохранение...';
@@ -116,31 +122,28 @@ function newAvatar(evt) {
       evt.submitter.textContent = "Сохранить";
     })
 };
+function handleCardDelete(evt) {
+  evt.preventDefault();
+  evt.submitter.textContent = 'Удаление...';
+  deleteMyCard(cardId)
+  .then(() => {
+    currentCard.remove()
+    closeModal(deletePopup);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+  .finally(() => {
+    evt.submitter.textContent = "Да";
+  })
+}
 
 formEdit.addEventListener('submit', editFormSubmit);
 cardForm.addEventListener('submit', handleCardSubmit);
 avatarPopup.addEventListener('submit', newAvatar);
+deletePopup.addEventListener('submit', handleCardDelete);
 
 enableValidation(settingsValidation);
-
-function openSubmit(evt) {
-  evt.preventDefault();
-  const deleteButton = evt.target.closest('.card__delete-button');
-  openModal(deletePopup);
-  deletePopup._id = deleteButton._id;
-  deleteSubmitButton.addEventListener('click', function() {
-    if (deletePopup._id === deleteButton._id) {
-      deleteMyCard(deleteButton._id)
-        .then(() => {
-          deleteCard(evt);
-          closeModal(deletePopup);
-        })
-        .catch((err) => {
-          console.log(err);
-        })
-    }
-  });
-};
 
 Promise.all([getUserInfo(), getCard()])
   .then(([userData, cards]) => {

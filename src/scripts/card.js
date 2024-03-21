@@ -16,10 +16,10 @@ export function createCard(cardData, openSubmit, like, openImage, userId, cardId
   likeButton._id = cardData._id;
   numbersOfLikes._id = cardData._id;
   cardId = cardData._id;
+  cardElement._id = cardData._id;
 
   cardElement.querySelector('.card__image').addEventListener('click', openImage);
   likeButton.addEventListener('click', like);
-
   deleteButton.addEventListener('click', openSubmit);
 
   if (cardData.owner._id !== userId) {
@@ -37,11 +37,6 @@ export function createCard(cardData, openSubmit, like, openImage, userId, cardId
 
   return cardElement;
 };
-
-export function deleteCard(event) {
-  const listItem = event.target.closest('.places__item');
-  listItem.remove();
-}
 
 export function likeCard(event) {
   const likeButton = event.target.closest('.card__like-button');
